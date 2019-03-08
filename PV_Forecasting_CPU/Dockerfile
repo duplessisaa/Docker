@@ -1,0 +1,310 @@
+# Author and Source: https://github.com/ufoym/deepo/blob/master/docker/Dockerfile.all-jupyter-py36-cpu
+#
+# Edited by: Armand du Plessis
+#
+# This is for CPU based development
+# ------------------------------------------------------------------------------
+# Based on the deep learning Docker images from https://github.com/ufoym/deepo.
+# Usage with docker:
+#   $ docker run -it --name <my_container_name> -v </path>:</notebooks> 
+# ------------------------------------------------------------------------------
+# ==================================================================
+# module list
+# ------------------------------------------------------------------
+# python        3.6    (apt)
+# torch         latest (git)
+# jupyter       latest (pip)
+# tensorflow    latest (pip)
+# keras         latest (pip)
+# lasagne       latest (git)
+# opencv        4.0.1  (git)
+# sonnet        latest (pip)
+# caffe         latest (git)
+# cntk          latest (pip)
+# ==================================================================
+
+FROM ubuntu:16.04
+
+#Add the code within the directory named Code
+ADD . /Code
+
+
+# ------------------------------------------------------------------------------
+# Volume
+# ------------------------------------------------------------------------------
+
+#make a new directory notebooks
+RUN mkdir /notebooks
+
+# Setting up volumes
+VOLUME ["/Code", "/notebooks"]
+
+# Setup with docker as bind mount volume add the following to docker command:
+# $ docker run -it --name <my_container_name> -v </path>:</notebooks> <image_name>:<image_tag>
+
+# ------------------------------------------------------------------------------
+# Ports Exposed
+# ------------------------------------------------------------------------------	
+#Ports exposed for Jupyter and tensorflow
+EXPOSE 8889 6006
+
+# Setup with docker the exposed ports to link container and the local machine's data volume
+# by adding the following
+# $ docker run -it --name <my_container_name> -v </path>:</notebooks> -p <local_machine_port>:8889 <image_name>:<image_tag>
+
+# ------------------------------------------------------------------------------
+# Install all dependencies
+# ------------------------------------------------------------------------------
+RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
+    PIP_INSTALL="python -m pip --no-cache-dir install --upgrade" && \
+    GIT_CLONE="git clone --depth 10" && \
+
+    rm -rf /var/lib/apt/lists/* \
+           /etc/apt/sources.list.d/cuda.list \
+           /etc/apt/sources.list.d/nvidia-ml.list && \
+
+    apt-get update && \
+
+# ==================================================================
+# tools
+# ------------------------------------------------------------------
+
+    DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+        build-essential \
+        ca-certificates \
+        cmake \
+        wget \
+        git \
+        vim \
+        && \
+
+
+# ==================================================================
+# python
+# ------------------------------------------------------------------
+
+    DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+        software-properties-common \
+        && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+        python3.6 \
+        python3.6-dev \
+        && \
+    wget -O ~/get-pip.py \
+        https://bootstrap.pypa.io/get-pip.py && \
+    python3.6 ~/get-pip.py && \
+    ln -s /usr/bin/python3.6 /usr/local/bin/python3 && \
+    ln -s /usr/bin/python3.6 /usr/local/bin/python && \
+    $PIP_INSTALL \
+        setuptools \
+        && \
+    $PIP_INSTALL \
+        numpy \
+        scipy \
+        pandas \
+		pvlib==0.6.0 \
+        cloudpickle \
+		pickleshare \
+        scikit-learn==0.20.0 \
+		python-dateutil==2.7.5 \
+        matplotlib \
+		PyMySQL==0.9.2 \
+		mkl-fft \
+		mkl-random \
+		windrose==1.6.5 \
+        Cython \
+		tables==3.4.4 \
+        && \
+
+# ==================================================================
+# torch
+# ------------------------------------------------------------------
+
+    export TORCH_NVCC_FLAGS="-D__CUDA_NO_HALF_OPERATORS__" && \
+    $GIT_CLONE https://github.com/torch/distro.git ~/torch --recursive && \
+
+    cd ~/torch/exe/luajit-rocks && \
+    mkdir build && cd build && \
+    cmake -D CMAKE_BUILD_TYPE=RELEASE \
+          -D CMAKE_INSTALL_PREFIX=/usr/local \
+          -D WITH_LUAJIT21=ON \
+          .. && \
+    make -j"$(nproc)" install && \
+
+    DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+        libjpeg-dev \
+        libpng-dev \
+        libreadline-dev \
+        && \
+
+    $GIT_CLONE https://github.com/Yonaba/Moses ~/moses && \
+    cd ~/moses && \
+    luarocks install rockspec/moses-1.6.1-1.rockspec && \
+
+    cd ~/torch && \
+    sed -i 's/extra\/cudnn/extra\/cudnn \&\& git checkout R7/' install.sh && \
+    sed -i 's/$PREFIX\/bin\/luarocks/luarocks/' install.sh && \
+    sed -i '/qt/d' install.sh && \
+    sed -i '/Installing Lua/,/^cd \.\.$/d' install.sh && \
+    sed -i '/path_to_nvidiasmi/,/^fi$/d' install.sh && \
+    sed -i '/Restore anaconda/,/^Not updating$/d' install.sh && \
+    sed -i '/You might want to/,/^fi$/d' install.sh && \
+    sed -i 's/\[ -x "$path_to_nvcc" \]/false/' install.sh && \
+    yes no | ./install.sh && \
+    luarocks install image && \
+    luarocks install nn && \
+
+# ==================================================================
+# boost
+# ------------------------------------------------------------------
+
+    wget -O ~/boost.tar.gz https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.gz && \
+    tar -zxf ~/boost.tar.gz -C ~ && \
+    cd ~/boost_* && \
+    ./bootstrap.sh --with-python=python3.6 && \
+    ./b2 install --prefix=/usr/local && \
+
+# ==================================================================
+# jupyter
+# ------------------------------------------------------------------
+# Run Jupyter from inside the container with
+# $ jupyter notebook --ip=0.0.0.0 --no-browser --port=8889 --allow-root
+
+    $PIP_INSTALL \
+        jupyter \
+        && \
+
+# ==================================================================
+# tensorflow
+# ------------------------------------------------------------------
+
+    $PIP_INSTALL \
+        tensorflow \
+        && \
+
+# ==================================================================
+# keras
+# ------------------------------------------------------------------
+
+    $PIP_INSTALL \
+        h5py \
+        keras \
+        && \
+
+# ==================================================================
+# lasagne
+# ------------------------------------------------------------------
+
+    $GIT_CLONE https://github.com/Lasagne/Lasagne ~/lasagne && \
+    cd ~/lasagne && \
+    $PIP_INSTALL \
+        . && \
+
+# ==================================================================
+# opencv
+# ------------------------------------------------------------------
+
+    DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+        libatlas-base-dev \
+        libgflags-dev \
+        libgoogle-glog-dev \
+        libhdf5-serial-dev \
+        libleveldb-dev \
+        liblmdb-dev \
+        libprotobuf-dev \
+        libsnappy-dev \
+        protobuf-compiler \
+        && \
+
+    $GIT_CLONE --branch 4.0.1 https://github.com/opencv/opencv ~/opencv && \
+    mkdir -p ~/opencv/build && cd ~/opencv/build && \
+    cmake -D CMAKE_BUILD_TYPE=RELEASE \
+          -D CMAKE_INSTALL_PREFIX=/usr/local \
+          -D WITH_IPP=OFF \
+          -D WITH_CUDA=OFF \
+          -D WITH_OPENCL=OFF \
+          -D BUILD_TESTS=OFF \
+          -D BUILD_PERF_TESTS=OFF \
+          .. && \
+    make -j"$(nproc)" install && \
+    ln -s /usr/local/include/opencv4/opencv2 /usr/local/include/opencv2 && \
+
+# ==================================================================
+# sonnet
+# ------------------------------------------------------------------
+
+    $PIP_INSTALL \
+        dm-sonnet \
+        && \
+
+# ==================================================================
+# caffe
+# ------------------------------------------------------------------
+
+    $GIT_CLONE https://github.com/BVLC/caffe ~/caffe && \
+    sed -i 's/CV_LOAD_IMAGE_COLOR/cv::IMREAD_COLOR/g' ~/caffe/src/caffe/layers/window_data_layer.cpp && \
+    sed -i 's/CV_LOAD_IMAGE_COLOR/cv::IMREAD_COLOR/g' ~/caffe/src/caffe/util/io.cpp && \
+    sed -i 's/CV_LOAD_IMAGE_GRAYSCALE/cv::IMREAD_GRAYSCALE/g' ~/caffe/src/caffe/util/io.cpp && \
+    cp ~/caffe/Makefile.config.example ~/caffe/Makefile.config && \
+    sed -i 's/# CPU_ONLY/CPU_ONLY/g' ~/caffe/Makefile.config && \
+    sed -i 's/# PYTHON_LIBRARIES/PYTHON_LIBRARIES/g' ~/caffe/Makefile.config && \
+    sed -i 's/# WITH_PYTHON_LAYER/WITH_PYTHON_LAYER/g' ~/caffe/Makefile.config && \
+    sed -i 's/# OPENCV_VERSION/OPENCV_VERSION/g' ~/caffe/Makefile.config && \
+    sed -i 's/2\.7/3\.6/g' ~/caffe/Makefile.config && \
+    sed -i 's/3\.5/3\.6/g' ~/caffe/Makefile.config && \
+    sed -i 's/\/usr\/lib\/python/\/usr\/local\/lib\/python/g' ~/caffe/Makefile.config && \
+    sed -i 's/\/usr\/local\/include/\/usr\/local\/include \/usr\/include\/hdf5\/serial/g' ~/caffe/Makefile.config && \
+    sed -i 's/hdf5/hdf5_serial/g' ~/caffe/Makefile && \
+    sed -i 's/# Debugging/COMMON_FLAGS += -std=c++11\n# Debugging/g' ~/caffe/Makefile && \
+    cd ~/caffe && \
+    make -j"$(nproc)" -Wno-deprecated-gpu-targets distribute && \
+
+    # fix ValueError caused by python-dateutil 1.x
+    sed -i 's/,<2//g' ~/caffe/python/requirements.txt && \
+
+    $PIP_INSTALL \
+        -r ~/caffe/python/requirements.txt && \
+
+    cd ~/caffe/distribute/bin && \
+    for file in *.bin; do mv "$file" "${file%%.bin}"; done && \
+    cd ~/caffe/distribute && \
+    cp -r bin include lib proto /usr/local/ && \
+    cp -r python/caffe /usr/local/lib/python3.6/dist-packages/ && \
+
+# ==================================================================
+# cntk
+# ------------------------------------------------------------------
+
+    DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+        openmpi-bin \
+        libpng-dev \
+        libtiff-dev \
+        libjasper-dev \
+        && \
+
+    wget --no-verbose -O - https://github.com/01org/mkl-dnn/releases/download/v0.14/mklml_lnx_2018.0.3.20180406.tgz | tar -xzf - && \
+    cp mklml*/* /usr/local -r && \
+
+    wget --no-verbose -O - https://github.com/01org/mkl-dnn/archive/v0.14.tar.gz | tar -xzf - && \
+    cd mkl-dnn-0.14 && mkdir build && cd build && \
+    ln -s /usr/local external && \
+    cmake -D CMAKE_BUILD_TYPE=RELEASE \
+          -D CMAKE_INSTALL_PREFIX=/usr/local \
+          .. && \
+    make -j"$(nproc)" install && \
+
+    $PIP_INSTALL \
+        cntk \
+        && \
+
+# ==================================================================
+# config & cleanup
+# ------------------------------------------------------------------
+
+    ldconfig && \
+    apt-get clean && \
+    apt-get autoremove && \
+    rm -rf /var/lib/apt/lists/* /tmp/* ~/*
+
