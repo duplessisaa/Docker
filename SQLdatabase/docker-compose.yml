@@ -3,10 +3,10 @@ version: '3'
 services:
   mysql:
     image: cytopia/mariadb-5.5
-    container_name: mariadb
+    container_name: mariadbScatec
     volumes:
       - container-volume:/var/lib/mysql
-      - ./MySQL_Backup.sql:/docker-entrypoint-initdb.d/MySQL_Backup.sql
+      - ./Clean_Backup.sql:/docker-entrypoint-initdb.d/Clean_Backup.sql
     environment:
       MYSQL_ROOT_PASSWORD: admin
       MYSQL_DATABASE: Scatec_Data_Clean
