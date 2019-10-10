@@ -95,26 +95,26 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
     ln -s /usr/bin/python3.6 /usr/local/bin/python && \
     $PIP_INSTALL \
         setuptools==40.8.0 \
-        pip==19.2.3 \
+        pip==19.1.1 \
         && \
     $PIP_INSTALL \	
         numpy \
         scipy \
-	seaborn==0.9.0 \
+		seaborn==0.9.0 \
         pandas==0.24.1\
-	pandas-profiling==2.3.0\
-	pvlib==0.6.0 \
+		pandas-profiling \
+		pvlib==0.6.0 \
         cloudpickle \
-	pickleshare \
+		pickleshare \
         scikit-learn==0.20.0 \
-	python-dateutil==2.7.5 \
+		python-dateutil==2.7.5 \
         matplotlib \
-	PyMySQL==0.9.2 \
-	mkl-fft \
-	mkl-random \
-	windrose==1.6.5 \
+		PyMySQL==0.9.2 \
+		mkl-fft \
+		mkl-random \
+		windrose==1.6.5 \
         Cython \
-	tables==3.4.4 \
+		tables==3.4.4 \
         && \		
 
 # ==================================================================
@@ -179,17 +179,6 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
 
 
 # ==================================================================
-# LaTeX
-# ------------------------------------------------------------------
-	RUN apt update && apt install wget ca-certificates -y --no-install-recommends
-	RUN apt install perl -y --no-install-recommends
-	RUN cpan Pod::Usage
-	RUN wget -qO- "https://yihui.name/gh/tinytex/tools/install-unx.sh" | sh
-	ENV PATH="/root/.TinyTeX/bin/x86_64-linux/:$PATH"
-	RUN tlmgr install beamer translator enumitem makecell type1cm fp adjustbox collectbox subfig wrapfig multirow
-	RUN tlmgr install babel-english
-
-# ==================================================================
 # config & cleanup
 # ------------------------------------------------------------------
 #
@@ -203,3 +192,13 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
 # Latex, seaborn, pandas-profiling
 # ==================================================================
 
+# ==================================================================
+# LaTeX
+# ------------------------------------------------------------------
+    RUN apt update && apt install wget ca-certificates -y --no-install-recommends
+    RUN apt install perl -y --no-install-recommends
+    RUN cpan Pod::Usage
+    RUN wget -qO- "https://yihui.name/gh/tinytex/tools/install-unx.sh" | sh
+    ENV PATH="/root/.TinyTeX/bin/x86_64-linux/:$PATH"
+    RUN tlmgr install beamer translator enumitem makecell type1cm fp adjustbox collectbox subfig wrapfig multirow
+    RUN tlmgr install babel-english
