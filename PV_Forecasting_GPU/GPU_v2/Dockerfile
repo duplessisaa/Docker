@@ -100,18 +100,18 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
         numpy \
         scipy \
         pandas \
-		pvlib==0.6.0 \
+	pvlib==0.6.0 \
         cloudpickle \
-		pickleshare \
+	pickleshare \
         scikit-learn==0.20.0 \
-		python-dateutil==2.7.5 \
+	python-dateutil==2.7.5 \
         matplotlib \
-		PyMySQL==0.9.2 \
-		mkl-fft \
-		mkl-random \
-		windrose==1.6.5 \
+	PyMySQL==0.9.2 \
+	mkl-fft \
+	mkl-random \
+	windrose==1.6.5 \
         Cython \
-		tables==3.4.4 \
+	tables==3.4.4 \
         && \		
 #		
 #
@@ -282,6 +282,6 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
 	
     RUN tlmgr install collection-fontsrecommended
 
-    $PIP_INSTALL \	
+    RUN python -m pip --no-cache-dir install --upgrade \
         seaborn \ 
-	pandas-profiling \
+        pandas-profiling \
