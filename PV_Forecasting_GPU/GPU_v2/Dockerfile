@@ -116,7 +116,7 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
         Cython \
 		tables==3.4.4 \
         && \		
-
+# 
 # ==================================================================
 # jupyter
 # ------------------------------------------------------------------
@@ -147,7 +147,7 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
         h5py \
         keras \
         && \
-
+# 
 # ==================================================================
 # opencv
 # ------------------------------------------------------------------
@@ -176,8 +176,8 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
           .. && \
     make -j"$(nproc)" install && \
     ln -s /usr/local/include/opencv4/opencv2 /usr/local/include/opencv2 && \
-
-
+# 
+# 
 # ==================================================================
 # config & cleanup
 # ------------------------------------------------------------------
@@ -186,12 +186,12 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
     apt-get clean && \
     apt-get autoremove && \
     rm -rf /var/lib/apt/lists/* /tmp/* ~/*
-
+# 
 # ==================================================================
 # Additions to docker image: 2019-Oct-10
 # Latex, seaborn, pandas-profiling
 # ==================================================================
-
+# 
 # ==================================================================
 # LaTeX
 # ------------------------------------------------------------------
@@ -202,3 +202,4 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
     ENV PATH="/root/.TinyTeX/bin/x86_64-linux/:$PATH"
     RUN tlmgr install beamer translator enumitem makecell type1cm fp adjustbox collectbox subfig wrapfig multirow
     RUN tlmgr install babel-english
+# 
