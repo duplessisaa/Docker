@@ -94,12 +94,15 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
     ln -s /usr/bin/python3.6 /usr/local/bin/python3 && \
     ln -s /usr/bin/python3.6 /usr/local/bin/python && \
     $PIP_INSTALL \
-        setuptools \
+        setuptools==40.8.0 \
+        pip==19.2.3 \
         && \
     $PIP_INSTALL \	
         numpy \
         scipy \
-        pandas \
+	seaborn==0.9.0 \
+        pandas==0.24.1\
+	pandas-profiling==2.3.0\
 	pvlib==0.6.0 \
         cloudpickle \
 	pickleshare \
@@ -113,19 +116,7 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
         Cython \
 	tables==3.4.4 \
         && \		
-#		
-#
-# ==================================================================
-# boost
-# ------------------------------------------------------------------
-#
-    wget -O ~/boost.tar.gz https://dl.bintray.com/boostorg/release/1.65.1/source/boost_1_65_1.tar.gz && \
-    tar -zxf ~/boost.tar.gz -C ~ && \
-    cd ~/boost_* && \
-    ./bootstrap.sh --with-python=python3.6 && \
-    ./b2 install --prefix=/usr/local && \
-#
-#
+
 # ==================================================================
 # jupyter
 # ------------------------------------------------------------------
@@ -156,16 +147,7 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
         h5py \
         keras \
         && \
-#
-# ==================================================================
-# lasagne
-# ------------------------------------------------------------------
-#
-    $GIT_CLONE https://github.com/Lasagne/Lasagne ~/lasagne && \
-    cd ~/lasagne && \
-    $PIP_INSTALL \
-        . && \
-#
+
 # ==================================================================
 # opencv
 # ------------------------------------------------------------------
@@ -194,78 +176,19 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
           .. && \
     make -j"$(nproc)" install && \
     ln -s /usr/local/include/opencv4/opencv2 /usr/local/include/opencv2 && \
-#
+
+
 # ==================================================================
-# sonnet
+# LaTeX
 # ------------------------------------------------------------------
-#
-    $PIP_INSTALL \
-        dm-sonnet \
-        && \
-#
-# ==================================================================
-# caffe
-# ------------------------------------------------------------------
-#
-    $GIT_CLONE https://github.com/BVLC/caffe ~/caffe && \
-    sed -i 's/CV_LOAD_IMAGE_COLOR/cv::IMREAD_COLOR/g' ~/caffe/src/caffe/layers/window_data_layer.cpp && \
-    sed -i 's/CV_LOAD_IMAGE_COLOR/cv::IMREAD_COLOR/g' ~/caffe/src/caffe/util/io.cpp && \
-    sed -i 's/CV_LOAD_IMAGE_GRAYSCALE/cv::IMREAD_GRAYSCALE/g' ~/caffe/src/caffe/util/io.cpp && \
-    cp ~/caffe/Makefile.config.example ~/caffe/Makefile.config && \
-    sed -i 's/# USE_CUDNN/USE_CUDNN/g' ~/caffe/Makefile.config && \
-    sed -i 's/# PYTHON_LIBRARIES/PYTHON_LIBRARIES/g' ~/caffe/Makefile.config && \
-    sed -i 's/# WITH_PYTHON_LAYER/WITH_PYTHON_LAYER/g' ~/caffe/Makefile.config && \
-    sed -i 's/# OPENCV_VERSION/OPENCV_VERSION/g' ~/caffe/Makefile.config && \
-    sed -i 's/# USE_NCCL/USE_NCCL/g' ~/caffe/Makefile.config && \
-    sed -i 's/-gencode arch=compute_20,code=sm_20//g' ~/caffe/Makefile.config && \
-    sed -i 's/-gencode arch=compute_20,code=sm_21//g' ~/caffe/Makefile.config && \
-    sed -i 's/2\.7/3\.6/g' ~/caffe/Makefile.config && \
-    sed -i 's/3\.5/3\.6/g' ~/caffe/Makefile.config && \
-    sed -i 's/\/usr\/lib\/python/\/usr\/local\/lib\/python/g' ~/caffe/Makefile.config && \
-    sed -i 's/\/usr\/local\/include/\/usr\/local\/include \/usr\/include\/hdf5\/serial/g' ~/caffe/Makefile.config && \
-    sed -i 's/hdf5/hdf5_serial/g' ~/caffe/Makefile && \
-    sed -i 's/# Debugging/COMMON_FLAGS += -std=c++11\n# Debugging/g' ~/caffe/Makefile && \
-    cd ~/caffe && \
-    make -j"$(nproc)" -Wno-deprecated-gpu-targets distribute && \
-#
-    # fix ValueError caused by python-dateutil 1.x
-    sed -i 's/,<2//g' ~/caffe/python/requirements.txt && \
-#
-    $PIP_INSTALL \
-        -r ~/caffe/python/requirements.txt && \
-#
-    cd ~/caffe/distribute/bin && \
-    for file in *.bin; do mv "$file" "${file%%.bin}"; done && \
-    cd ~/caffe/distribute && \
-    cp -r bin include lib proto /usr/local/ && \
-    cp -r python/caffe /usr/local/lib/python3.6/dist-packages/ && \
-#
-# ==================================================================
-# cntk
-# ------------------------------------------------------------------
-#
-    DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
-        openmpi-bin \
-        libpng-dev \
-        libtiff-dev \
-        libjasper-dev \
-        && \
-#
-    wget --no-verbose -O - https://github.com/01org/mkl-dnn/releases/download/v0.14/mklml_lnx_2018.0.3.20180406.tgz | tar -xzf - && \
-    cp mklml*/* /usr/local -r && \
-#
-    wget --no-verbose -O - https://github.com/01org/mkl-dnn/archive/v0.14.tar.gz | tar -xzf - && \
-    cd mkl-dnn-0.14 && mkdir build && cd build && \
-    ln -s /usr/local external && \
-    cmake -D CMAKE_BUILD_TYPE=RELEASE \
-          -D CMAKE_INSTALL_PREFIX=/usr/local \
-          .. && \
-    make -j"$(nproc)" install && \
-#
-    $PIP_INSTALL \
-        cntk-gpu \
-        && \
-#
+	RUN apt update && apt install wget ca-certificates -y --no-install-recommends
+	RUN apt install perl -y --no-install-recommends
+	RUN cpan Pod::Usage
+	RUN wget -qO- "https://yihui.name/gh/tinytex/tools/install-unx.sh" | sh
+	ENV PATH="/root/.TinyTeX/bin/x86_64-linux/:$PATH"
+	RUN tlmgr install beamer translator enumitem makecell type1cm fp adjustbox collectbox subfig wrapfig multirow
+	RUN tlmgr install babel-english
+
 # ==================================================================
 # config & cleanup
 # ------------------------------------------------------------------
@@ -280,14 +203,3 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
 # Latex, seaborn, pandas-profiling
 # ==================================================================
 
-# ==================================================================
-# LaTeX
-# ------------------------------------------------------------------
-    RUN tlmgr install collection-fontsrecommended
-
-# ==================================================================
-# more python dependendencies/packages
-# ------------------------------------------------------------------
-    RUN python -m pip --no-cache-dir install --upgrade \
-        seaborn \ 
-        pandas-profiling \
