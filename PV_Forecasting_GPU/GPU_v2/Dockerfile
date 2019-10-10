@@ -278,10 +278,16 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
 # ==================================================================
 # Additions to docker image: 2019-Oct-10
 # Latex, seaborn, pandas-profiling
+# ==================================================================
+
+# ==================================================================
+# LaTeX
 # ------------------------------------------------------------------
-	
     RUN tlmgr install collection-fontsrecommended
 
+# ==================================================================
+# more python dependendencies/packages
+# ------------------------------------------------------------------
     RUN python -m pip --no-cache-dir install --upgrade \
         seaborn \ 
         pandas-profiling \
