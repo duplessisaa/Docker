@@ -280,8 +280,8 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
 # Latex, seaborn, pandas-profiling
 # ------------------------------------------------------------------
 	
-	RUN tlmgr install collection-fontsrecommended
-	
-	$PIP_INSTALL \	
-		seaborn \ 
-		pandas-profiling \
+    RUN tlmgr install collection-fontsrecommended
+
+    $PIP_INSTALL \	
+        seaborn \ 
+	pandas-profiling \
