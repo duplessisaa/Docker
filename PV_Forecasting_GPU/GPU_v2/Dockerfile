@@ -115,8 +115,9 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
 		windrose==1.6.5 \
         Cython \
 		tables==3.4.4 \
+		PyDvi==0.1.0 \
         && \		
-# 
+
 # ==================================================================
 # jupyter
 # ------------------------------------------------------------------
@@ -147,7 +148,7 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
         h5py \
         keras \
         && \
-# 
+
 # ==================================================================
 # opencv
 # ------------------------------------------------------------------
@@ -176,8 +177,8 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
           .. && \
     make -j"$(nproc)" install && \
     ln -s /usr/local/include/opencv4/opencv2 /usr/local/include/opencv2 && \
-# 
-# 
+
+
 # ==================================================================
 # config & cleanup
 # ------------------------------------------------------------------
@@ -186,20 +187,16 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
     apt-get clean && \
     apt-get autoremove && \
     rm -rf /var/lib/apt/lists/* /tmp/* ~/*
-# 
+
 # ==================================================================
 # Additions to docker image: 2019-Oct-10
 # Latex, seaborn, pandas-profiling
 # ==================================================================
-# 
+
 # ==================================================================
 # LaTeX
 # ------------------------------------------------------------------
-    RUN apt update && apt install wget ca-certificates -y --no-install-recommends
-    RUN apt install perl -y --no-install-recommends
-    RUN cpan Pod::Usage
-    RUN wget -qO- "https://yihui.name/gh/tinytex/tools/install-unx.sh" | sh
-    ENV PATH="/root/.TinyTeX/bin/x86_64-linux/:$PATH"
-    RUN tlmgr install beamer translator enumitem makecell type1cm fp adjustbox collectbox subfig wrapfig multirow
-    RUN tlmgr install babel-english
-# 
+	
+    Run apt install texlive-base -y --no-install-recommends
+	
+	
