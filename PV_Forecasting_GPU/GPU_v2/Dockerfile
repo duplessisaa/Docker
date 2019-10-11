@@ -115,7 +115,6 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
 		windrose==1.6.5 \
         Cython \
 		tables==3.4.4 \
-		PyDvi==0.1.0 \
         && \		
 
 # ==================================================================
