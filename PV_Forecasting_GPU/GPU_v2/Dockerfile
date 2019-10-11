@@ -120,7 +120,9 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
 # LaTeX
 # ------------------------------------------------------------------
 # 	
-Run apt-get install texlive-base -y --no-install-recommends
+    $APT_INSTALL \
+    texlive-base \
+    && \
 #
 # ==================================================================
 # jupyter
