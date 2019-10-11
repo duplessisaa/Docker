@@ -100,21 +100,21 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
     $PIP_INSTALL \	
         numpy \
         scipy \
-		seaborn==0.9.0 \
+	seaborn==0.9.0 \
         pandas==0.24.1\
-		pandas-profiling \
-		pvlib==0.6.0 \
+	pandas-profiling \
+	pvlib==0.6.0 \
         cloudpickle \
-		pickleshare \
+	pickleshare \
         scikit-learn==0.20.0 \
-		python-dateutil==2.7.5 \
+	python-dateutil==2.7.5 \
         matplotlib \
-		PyMySQL==0.9.2 \
-		mkl-fft \
-		mkl-random \
-		windrose==1.6.5 \
+	PyMySQL==0.9.2 \
+	mkl-fft \
+	mkl-random \
+	windrose==1.6.5 \
         Cython \
-		tables==3.4.4 \
+	tables==3.4.4 \
         && \		
 
 # ==================================================================
@@ -147,7 +147,7 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
         h5py \
         keras \
         && \
-
+# 
 # ==================================================================
 # opencv
 # ------------------------------------------------------------------
@@ -176,8 +176,8 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
           .. && \
     make -j"$(nproc)" install && \
     ln -s /usr/local/include/opencv4/opencv2 /usr/local/include/opencv2 && \
-
-
+# 
+# 
 # ==================================================================
 # config & cleanup
 # ------------------------------------------------------------------
@@ -186,16 +186,16 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
     apt-get clean && \
     apt-get autoremove && \
     rm -rf /var/lib/apt/lists/* /tmp/* ~/*
-
+# 
 # ==================================================================
 # Additions to docker image: 2019-Oct-10
 # Latex, seaborn, pandas-profiling
 # ==================================================================
-
+# 
 # ==================================================================
 # LaTeX
 # ------------------------------------------------------------------
-	
+# 	
     Run apt install texlive-base -y --no-install-recommends
-	
-	
+# 	
+# 
